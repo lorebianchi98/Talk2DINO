@@ -32,6 +32,56 @@ python train.py --model configs/vitb_mlp_infonce.yaml --train_dataset ../coco201
 ```
 ## Evaluation
 
+The segmentation datasets should be organized as follows:
+
+```shell
+data
+├── cityscapes
+│   ├── leftImg8bit
+│   │   ├── train
+│   │   ├── val
+│   ├── gtFine
+│   │   ├── train
+│   │   ├── val
+├── VOCdevkit
+│   ├── VOC2012
+│   │   ├── JPEGImages
+│   │   ├── SegmentationClass
+│   │   ├── ImageSets
+│   │   │   ├── Segmentation
+│   ├── VOC2010
+│   │   ├── JPEGImages
+│   │   ├── SegmentationClassContext
+│   │   ├── ImageSets
+│   │   │   ├── SegmentationContext
+│   │   │   │   ├── train.txt
+│   │   │   │   ├── val.txt
+│   │   ├── trainval_merged.json
+│   ├── VOCaug
+│   │   ├── dataset
+│   │   │   ├── cls
+├── ade
+│   ├── ADEChallengeData2016
+│   │   ├── annotations
+│   │   │   ├── training
+│   │   │   ├── validation
+│   │   ├── images
+│   │   │   ├── training
+│   │   │   ├── validation
+├── coco_stuff164k
+│   ├── images
+│   │   ├── train2017
+│   │   ├── val2017
+│   ├── annotations
+│   │   ├── train2017
+│   │   ├── val2017
+```
+
+Please download and setup [PASCAL VOC](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md#pascal-voc)
+, [PASCAL Context](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md#pascal-context), [COCO-Stuff164k](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md#coco-stuff-164k)
+, [Cityscapes](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md#cityscapes), and [ADE20k](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md#ade20k) datasets
+following [MMSegmentation data preparation document](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md).
+
 To evaluate the model on open-vocabulary segmentation benchmarks, use the `src/open_vocabulary_segmentation/main.py` script. Select the appropriate configuration based on the model, benchmark, and PAMR settings. Below is an example to evaluate the ViT-Base model on Cityscapes without PAMR:
 
 ```bash
