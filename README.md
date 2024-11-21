@@ -3,8 +3,12 @@
 ```bash
 conda create --name talk2dino python=3.9
 conda activate talk2dino
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
 pip install -r requirements.txt
+pip install -U openmim
+mim install mmengine
+mim install "mmcv-full==1.6.2"
+mim install "mmsegmentation==0.27.0"
 ```
 
 ## Feature Extraction
