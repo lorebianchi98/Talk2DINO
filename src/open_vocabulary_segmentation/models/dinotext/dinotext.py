@@ -45,7 +45,7 @@ class DINOText(nn.Module):
         
     def __init__(
             self, model_name, resize_dim, clip_model_name, proj_class, proj_name, proj_model, avg_self_attn_token=False, disentangled_self_attn_token=True, loss=None, pre_trained=True,
-            unfreeze_last_text_layer=False, unfreeze_last_image_layer=False, is_eval=True, use_avg_text_token=False, keep_cls=False, keep_end_seq=False, **kwargs
+            unfreeze_last_text_layer=False, unfreeze_last_image_layer=False, is_eval=True, use_avg_text_token=False, keep_cls=False, keep_end_seq=False, with_bg_clean=False, **kwargs
     ):
         super().__init__()
         self.feats = {}
@@ -107,12 +107,6 @@ class DINOText(nn.Module):
             self.clip_model.transformer.resblocks[-2].register_forward_hook(self.get_clip_second_last_dense_out)
         
             
-        # if proj_model == 'ProjectionLayer':
-        #     self.proj = ProjectionLayer.from_config(config)
-        # elif proj_model == 'VisualProjectionLayer':
-        #     self.proj = VisualProjectionLayer.from_config(config)
-        # else:
-        #     raise ValueError(f"Unknown projection model: {config['proj_model']}")
         if pre_trained:
             self.proj.load_state_dict(torch.load(os.path.join("weights", f"{proj_name}.pth"), 'cpu'))
         self.proj.to(device)
@@ -139,16 +133,9 @@ class DINOText(nn.Module):
             # in this case we register a forward hook with the aim of getting all the tokens and not only the cls
             self.clip_model.ln_final.register_forward_hook(self.get_all_out_tokens)
             self.keep_cls = keep_cls
-            self.keep_end_seq = keep_end_seq
-        
-                        
-        # TODO
-        # if loss is not None:
-        #     self.contrastive_loss = Contrastive(ltype=loss['ltype'],
-        #                                         margin=loss['margin'] if 'margin' in loss else 0.1,
-        #                                         max_violation=loss['max_violation'] if 'max_violation' in loss else False
-        #                                         )
+            self.keep_end_seq = keep_end_seq        
             
+        self.with_bg_clean = with_bg_clean    
 
     
     def process_self_attention(self, output, batch_size, num_tokens, num_attn_heads, embed_dim, scale, num_global_tokens, ret_self_attn_maps=False):
@@ -170,7 +157,6 @@ class DINOText(nn.Module):
             x = x.to(dtype=torch.float32)
         else:
             x = self.clip_model.encode_text(tokenized_texts)
-        # x = self.clip2dino_proj.project_clip_txt(x)
         return x
     
     def encode_image(self, images):
@@ -187,18 +173,11 @@ class DINOText(nn.Module):
             self_attn_maps = self_attn_maps.softmax(dim=-1)
             x = (x['x_norm_patchtokens'].unsqueeze(1) * self_attn_maps.unsqueeze(-1)).mean(dim=2)
 
-        # if self.avg_self_attn_token:
-        #     batch_size, num_tokens, embed_dim = x['x_norm_patchtokens'].shape
-        #     num_tokens = num_tokens + self.num_global_tokens
-        #     self_attn = self.process_self_attention(self.feats['self_attn'], batch_size, num_tokens, self.num_attn_heads, embed_dim, self.scale, self.num_global_tokens)
-        #     x = (self_attn.unsqueeze(-1) * x['x_norm_patchtokens']).mean(dim=1)
         return x, self_attn_maps
 
     def forward(self, image, text, return_logit_scale=False):
         with torch.no_grad():
-            # text_emb = clip.tokenize(text).to(device)
             txt_embed = self.encode_text(text)
-        # txt_embed = self.proj.project_clip_txt(txt_embed)
             
         img_embed, self_attn_maps = self.encode_image(image)
         
@@ -324,7 +303,7 @@ class DINOText(nn.Module):
     
     @torch.no_grad()
     def generate_masks(
-            self, image, img_metas, text_emb, classnames, text_is_token=False, apply_pamr=False, with_bg=False, background_func="weighted_average_sigmoid", lambda_bg=0.2,
+            self, image, img_metas, text_emb, classnames, text_is_token=False, apply_pamr=False, background_func="weighted_average_sigmoid", lambda_bg=0.2,
             # kp_w=0.3,
     ):
         """Generate masks for each text embeddings
@@ -365,37 +344,13 @@ class DINOText(nn.Module):
         image_feat = image_feat.reshape(b, np_h, np_w, c).permute(0, 3, 1, 2)
         
         self_attn, self_attn_maps = self.process_self_attention(self.feats['self_attn'], batch_size, num_tokens + self.num_global_tokens, self.num_attn_heads, embed_dim, self.scale, self.num_global_tokens, ret_self_attn_maps=True)
-        # normalize self_attn_maps, which has shape [B, N, P], in range min(self_attn_maps) ~ 1
-        # self_attn_maps = self_attn_maps - self_attn_maps.min()
-        # self_attn_maps = self_attn_maps / self_attn_maps.max()
-        # self_attn_maps = self_attn_maps.mean(dim=1)
-        # self_attn_maps = torch.nn.Sigmoid()(self_attn_maps)
-        
-        # proj_text_emb = self.proj.project_clip_txt(text_emb.float())
-
-        ############### Generate mask ################
-        # soft mask
         mask, simmap = self.masker.forward_seg(image_feat, text_emb, hard=False)  # [B, N, H', W']
         
-        if with_bg:
-            # mask = mask * self_attn_maps.reshape(mask.shape[0], 1, mask.shape[2], mask.shape[3])
-            # mask = mask + lambda_bg * self_attn.reshape(mask.shape[0], 1, mask.shape[2], mask.shape[3])
-            # rescale self_attn in range [min(mask), max(mask)]
-            if background_func == "weighted_average":
-                mask = self.weighted_average_with_self_attn(mask, self_attn, lambda_bg)
-            if background_func == "weighted_average_sigmoid":
-                mask = self.weighted_average_with_self_attn_sigmoid(mask, self_attn, lambda_bg)
-            elif background_func == "weighted_average_head":
-                mask = self.weighted_average_with_self_attn_heads(mask, self_attn_maps, lambda_bg)
-            elif background_func == "similarity_assignment":
-                mask = self.similarity_assignment(mask, image_feat, self_attn_maps, text_emb, lambda_bg)
-            elif background_func == "similarity_assignment_sigmoid":
-                mask = self.similarity_assignment_sigmoid(mask, image_feat, self_attn_maps, text_emb, lambda_bg)
-
+        if self.with_bg_clean:
+            mask = self.similarity_assignment_weighted(mask, image_feat, self_attn_maps, text_emb, lambda_bg)
 
         # resize
         mask = F.interpolate(mask, (pH, pW), mode='bilinear', align_corners=True)  # [B, N, H, W]
-
 
         if apply_pamr:
             for c in range(0, mask.shape[1], 30):
@@ -404,118 +359,31 @@ class DINOText(nn.Module):
         assert mask.shape[2] == H and mask.shape[3] == W, f"shape mismatch: ({H}, {W}) / {mask.shape}"
 
         return mask, simmap
-
-    def weighted_average_with_self_attn(self, mask, self_attn, lambda_bg=0.2):
-        # mask = mask * self_attn
-        # mask = mask + lambda_bg * self_attn
-        # rescale self_attn in range [min(mask), max(mask)]
-        bs, num_classes, h, w = mask.shape
-        min_ = self_attn.min().item()
-        max_ = max(self_attn.max().item(), self_attn.max().item() - min_)
-        self_attn = self_attn - min_
-        self_attn = self_attn / max_
-        min_ = mask.min().item()
-        max_ = max(mask.max().item(), mask.max().item() - min_)
-        self_attn = self_attn * (max_ - min_) + min_
-        self_attn = self_attn.reshape(bs, 1, h, w)
-        mask = (mask + lambda_bg * self_attn) / (1 + lambda_bg)
-        return mask
     
-    def weighted_average_with_self_attn_sigmoid(self, mask, self_attn, lambda_bg=0.2):
-        # mask = mask * self_attn
-        # mask = mask + lambda_bg * self_attn
-        # rescale self_attn in range [min(mask), max(mask)]
-        bs, num_classes, h, w = mask.shape
-        # min_ = self_attn.min().item()
-        # max_ = max(self_attn.max().item(), self_attn.max().item() - min_)
-        # self_attn = self_attn - min_
-        # self_attn = self_attn / max_
-        # min_ = mask.min().item()
-        # max_ = max(mask.max().item(), mask.max().item() - min_)
-        # self_attn = self_attn * (max_ - min_) + min_
-        self_attn = torch.sigmoid(self_attn.reshape(bs, 1, h, w))
-        mask = (mask + lambda_bg * self_attn) / (1 + lambda_bg)
-        return mask
-    
-    def weighted_average_with_self_attn_heads(self, mask, self_attn_maps, lambda_bg=0.2):
-        _, num_heads, hw = self_attn_maps.shape
-        bs, num_classes, h, w = mask.shape
-        assert bs == 1, "Batch size must be 1"
-        self_attn_maps = self_attn_maps.reshape(num_heads, hw) # [M, P]
-        mask = mask.reshape(num_classes, hw) # [N, P]
-        self_attn_maps_repeat = self_attn_maps.unsqueeze(0).repeat(num_classes, 1, 1) # [N, M, P]
-        mask_repeat = mask.unsqueeze(1).repeat(1, num_heads, 1) # [N, M, P]
-        min_mask = mask_repeat.min(dim=-1).values.unsqueeze(-1) # [N, M, 1]
-        max_mask = mask_repeat.max(dim=-1).values.unsqueeze(-1) # [N, M, 1]
-        
-        min_self_attn = self_attn_maps_repeat.min(dim=-1).values.unsqueeze(-1) # [N, M, 1]
-        max_self_attn = self_attn_maps_repeat.max(dim=-1).values.unsqueeze(-1) # [N, M, 1]
-        max_self_attn = torch.cat([max_self_attn, max_self_attn - min_self_attn], dim=-1).max(dim=-1).values.unsqueeze(-1)
-        self_attn_maps_repeat = self_attn_maps_repeat - min_self_attn
-        self_attn_maps_repeat = self_attn_maps_repeat / max_self_attn
-        
-        self_attn_maps_repeat = self_attn_maps_repeat * (max_mask - min_mask) + min_mask
-        squared_diff = ((mask_repeat - self_attn_maps_repeat) ** 2).sum(dim=-1)
-        self_attn_maps_argmin = squared_diff.argmin(dim=-1)
-        mask_output = (mask_repeat[torch.arange(num_classes), self_attn_maps_argmin] + lambda_bg * self_attn_maps_repeat[torch.arange(num_classes), self_attn_maps_argmin]).reshape(bs, num_classes, h, w) / (1 + lambda_bg)
-        return mask_output
-    
-    def similarity_assignment(self, mask, image_feat, self_attn_maps, text_emb, lambda_bg=0.2):
+    def similarity_assignment_weighted(self, mask, image_feat, self_attn_maps, text_emb, lambda_bg=0.2):
         bs, c, h, w = image_feat.shape
         bs, num_classes, h, w = mask.shape
         bs, num_heads, hw = self_attn_maps.shape
         image_feat = image_feat.reshape(bs, c, hw)
         num_classes, c = text_emb.shape
-        avg_head_embed = (self_attn_maps.unsqueeze(1) * image_feat.unsqueeze(2)).sum(dim=-1) # [B, C, M]
-        avg_head_embed = avg_head_embed.permute(0, 2, 1) # [B, M, C]
+        avg_head_embed = (self_attn_maps.unsqueeze(2).softmax(dim=-1) * image_feat.unsqueeze(1)).sum(dim=-1) # [B, C, M]
         avg_head_embed = avg_head_embed / avg_head_embed.norm(dim=-1, keepdim=True)
         avg_head_embed = avg_head_embed.permute(0, 2, 1) # [B, C, M]
         head_text_sim = text_emb.unsqueeze(0) @ avg_head_embed # [B, M, N]
-        head_text_sim = head_text_sim.argmax(dim=-1) # [B, M]
+        head_text_sim = (head_text_sim).softmax(dim=-1)
+        head_text_sim_sum = head_text_sim.sum(dim=-1)
         
-        assert bs == 1, "Batch size must be 1"
-        self_attn_maps = self_attn_maps.reshape(num_heads, hw)
-        self_attn_maps_repeat = self_attn_maps.unsqueeze(0).repeat(num_classes, 1, 1)
+        self_attn_maps_repeat = self_attn_maps.unsqueeze(1).repeat(1, num_classes, 1, 1)
+        head_text_sim_repeat = head_text_sim.unsqueeze(-1).repeat(1, 1, 1, hw)
+        avg_self_attn_per_class = (self_attn_maps_repeat * head_text_sim_repeat).sum(dim=2) / head_text_sim_sum.unsqueeze(-1).repeat(1, 1, hw)
+        avg_self_attn_per_class = avg_self_attn_per_class.softmax(dim=-1)
+        
+        min_self_attn = avg_self_attn_per_class.min().item()
+        max_self_attn = avg_self_attn_per_class.max().item()
+        max_self_attn = max(max_self_attn, max_self_attn - min_self_attn)
+        avg_self_attn_per_class = avg_self_attn_per_class - min_self_attn
+        avg_self_attn_per_class = avg_self_attn_per_class / max_self_attn
+        avg_self_attn_per_class = avg_self_attn_per_class * (mask.max() - mask.min()) + mask.min()
         mask = mask.reshape(num_classes, hw) # [N, P]
-        mask_repeat = mask.unsqueeze(1).repeat(1, num_heads, 1)
-        
-        min_mask = mask.min().item()
-        max_mask = mask.max().item()
-        
-        min_self_attn = self_attn_maps_repeat.min(dim=-1).values.unsqueeze(-1) # [N, M, 1]
-        max_self_attn = self_attn_maps_repeat.max(dim=-1).values.unsqueeze(-1) # [N, M, 1]
-        max_self_attn = torch.cat([max_self_attn, max_self_attn - min_self_attn], dim=-1).max(dim=-1).values.unsqueeze(-1)
-        self_attn_maps_repeat = self_attn_maps_repeat - min_self_attn
-        self_attn_maps_repeat = self_attn_maps_repeat / max_self_attn
-        self_attn_maps_repeat = self_attn_maps_repeat * (max_mask - min_mask) + min_mask
-
-        # mask_output = (mask_repeat[torch.arange(num_classes), head_text_sim] + lambda_bg * self_attn_maps_repeat[torch.arange(num_classes), head_text_sim]).reshape(bs, num_classes, h, w) / (1 + lambda_bg)
-        mask_output = mask_repeat[torch.arange(num_classes), head_text_sim]
-        mask_output[(mask_output <= 0.55) * (self_attn_maps_repeat[torch.arange(num_classes), head_text_sim] <= 0.55)] = 0
-        mask_output = mask_output.reshape(bs, num_classes, h, w)
-        return mask_output
-    
-    def similarity_assignment_sigmoid(self, mask, image_feat, self_attn_maps, text_emb, lambda_bg=0.2):
-        bs, c, h, w = image_feat.shape
-        bs, num_classes, h, w = mask.shape
-        bs, num_heads, hw = self_attn_maps.shape
-        image_feat = image_feat.reshape(bs, c, hw)
-        num_classes, c = text_emb.shape
-        avg_head_embed = (self_attn_maps.unsqueeze(1) * image_feat.unsqueeze(2)).sum(dim=-1) # [B, C, M]
-        avg_head_embed = avg_head_embed.permute(0, 2, 1) # [B, M, C]
-        avg_head_embed = avg_head_embed / avg_head_embed.norm(dim=-1, keepdim=True)
-        avg_head_embed = avg_head_embed.permute(0, 2, 1) # [B, C, M]
-        head_text_sim = text_emb.unsqueeze(0) @ avg_head_embed # [B, M, N]
-        head_text_sim = head_text_sim.argmax(dim=-1) # [B, M]
-        
-        assert bs == 1, "Batch size must be 1"
-        self_attn_maps = self_attn_maps.reshape(num_heads, hw)
-        self_attn_maps_repeat = self_attn_maps.unsqueeze(0).repeat(num_classes, 1, 1)
-        mask = mask.reshape(num_classes, hw) # [N, P]
-        mask_repeat = mask.unsqueeze(1).repeat(1, num_heads, 1)
-        
-        # mask_output = (mask_repeat[torch.arange(num_classes), head_text_sim] + lambda_bg * self_attn_maps_repeat[torch.arange(num_classes), head_text_sim]).reshape(bs, num_classes, h, w) / (1 + lambda_bg)
-        mask_output = mask_repeat[torch.arange(num_classes), head_text_sim]
-        mask_output[(mask_output <= 0.55) * (torch.sigmoid(self_attn_maps_repeat[torch.arange(num_classes), head_text_sim]) <= 0.8)] = 0
-        mask_output = mask_output.reshape(bs, num_classes, h, w)
+        mask_output = (mask + lambda_bg * avg_self_attn_per_class).reshape(bs, num_classes, h, w) / (1 + lambda_bg)
         return mask_output
