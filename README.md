@@ -1,7 +1,8 @@
 # Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation
 ## Installation
 ```bash
-conda create --name dino-text python=3.9
+conda create --name talk2dino python=3.9
+conda activate talk2dino
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 pip install -r requirements.txt
 ```
