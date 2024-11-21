@@ -1,0 +1,49 @@
+_base_: "default.yml"
+data:
+  batch_size: 64
+  dataset:
+    train:
+      - cococaptions
+      # - gcc3m
+      # - gcc12m
+
+model:
+  type: DINOText
+  model_name: "dinov2_vitb14_reg"
+  clip_model_name: ViT-B/16
+  resize_dim: 448
+  proj_class: "vitb_mlp_infonce"
+  proj_name: "vitb_mlp_infonce_448_avg_self_attn_out"
+  proj_model: "ProjectionLayer"
+  loss:
+    ltype: 'infonce'
+  # max_visual_batch_size: 4
+
+train:
+  total_steps: 10000 #50000
+  warmup_steps: 0 #15000
+  ust_steps: 0  # train decoder only in this steps
+  base_lr: 0.0001 #3e-4
+  weight_decay: 0.05
+  min_lr: 4e-5
+  clip_grad: 5.0
+  optimizer:
+    eps: 1e-6
+  accum_freq: 1
+
+evaluate:
+  pamr: false
+  bg_thresh: 0.4
+  kp_w: 0.3
+
+  eval_freq: 500 #5000
+  template: sub_imagenet_template
+  # task:
+  #   - t_voc20
+  #   - t_context59
+
+checkpoint:
+  save_topk: 0
+  resume: "output/release_b64/checkpoint.pth"
+
+model_name: "release"

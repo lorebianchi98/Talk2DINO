@@ -1,0 +1,90 @@
+_base_: "eval.yml"
+
+data:
+  batch_size: 256
+  pin_memory: true
+  num_workers: 0
+  seed: ${train.seed}
+  dataset:
+    meta:
+      gcc3m:
+        type: img_txt_pair
+        path: ./data/gcc3m
+        prefix: gcc-train-{000000..00347}.tar
+        length: 2881393
+      gcc12m:
+        type: img_txt_pair
+        path: ./data/gcc12m
+        prefix: cc-{000000..001175}.tar
+        length: 11286526
+    train:
+      - gcc3m
+      - gcc12m
+
+  img_aug:
+    deit_aug: true
+    img_size: 224
+    img_scale: [0.08, 1.0]
+    interpolation: bilinear
+    color_jitter: 0.4
+    auto_augment: 'rand-m9-mstd0.5-inc1'
+    re_prob: 0.25
+    re_mode: 'pixel'
+    re_count: 1
+  text_aug: null
+
+train:
+  start_step: 0
+  total_steps: 50000
+  warmup_steps: 20000
+  ust_steps: 0
+  base_lr: 1.6e-3
+  weight_decay: 0.05
+  min_lr: 4e-5
+  clip_grad: 5.0
+  fp16: true
+  fp16_comm: true # use fp16 grad compression for multi-node training
+  seed: 42
+
+  lr_scheduler:
+    name: cosine
+
+  optimizer:
+    name: adamw
+    eps: 1e-8
+    betas: [0.9, 0.999]
+
+
+evaluate:
+  pamr: false
+  kp_w: 0.0
+  bg_thresh: 0.5
+
+  save_logits: null
+
+  eval_only: false
+  eval_freq: 5000
+  template: simple
+  task:
+    - voc
+    - voc20
+    - context
+    - context59
+    - coco_stuff
+    - coco_object
+    - cityscapes
+    - ade20k
+
+
+checkpoint:
+  resume: ''
+  save_topk: 0
+  save_all: false  # if true, save every evaluation step
+
+
+model_name: "default"  # display name in the logger
+output: ???
+tag: default
+print_freq: 20
+seed: 42
+wandb: false

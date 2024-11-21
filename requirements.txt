@@ -1,0 +1,7 @@
+git+https://github.com/openai/CLIP.git
+matplotlib
+opencv-python
+pyyaml
+requests
+scikit-image
+tqdm

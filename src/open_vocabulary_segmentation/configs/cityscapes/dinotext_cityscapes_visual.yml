@@ -1,0 +1,10 @@
+_base_: "default.yml"
+
+model:
+  type: DINOText
+  model_name: "dinov2_vitl14_reg"
+  clip_model_name: ViT-B/16
+  resize_dim: 518
+  proj_class: "visual_mlp"
+  proj_name: "visual_mlp_avg_self_attn_out"
+  proj_model: "VisualProjectionLayer"
