@@ -5,3 +5,9 @@ pyyaml
 requests
 scikit-image
 tqdm
+omegaconf
+einops
+timm
+transformers
+webdataset
+numpy==1.24.1
