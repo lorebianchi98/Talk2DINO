@@ -4,7 +4,6 @@ from torch import nn
 from torch.nn import functional as F
 from src.model import CLIPLastLayer
 
-# Code borrowed and adapted from https://github.com/mesnico/ALADIN/blob/master/alad/loss.py
 class Contrastive(nn.Module):
     def __init__(self, sim=None, margin=0, max_violation=False, ltype='triplet'):
         super(Contrastive, self).__init__()
