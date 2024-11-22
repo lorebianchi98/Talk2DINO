@@ -32,7 +32,7 @@ python train.py --model configs/vitb_mlp_infonce.yaml --train_dataset ../coco201
 ```
 ## Evaluation
 
-The segmentation datasets should be organized as follows:
+This section is adapted from [GroupViT](https://github.com/NVlabs/GroupViT), [TCL](https://github.com/khanrc/tcl), and [FreeDA](https://github.com/aimagelab/freeda). The segmentation datasets should be organized as follows:
 
 ```shell
 data
@@ -81,6 +81,11 @@ Please download and setup [PASCAL VOC](https://github.com/open-mmlab/mmsegmentat
 , [PASCAL Context](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md#pascal-context), [COCO-Stuff164k](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md#coco-stuff-164k)
 , [Cityscapes](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md#cityscapes), and [ADE20k](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md#ade20k) datasets
 following [MMSegmentation data preparation document](https://github.com/open-mmlab/mmsegmentation/blob/master/docs/en/dataset_prepare.md).
+
+COCO-Object dataset uses only object classes from COCO-Stuff164k dataset by collecting instance semgentation annotations. Run the following command to convert instance segmentation annotations to semantic segmentation annotations:
+```bash
+python convert_dataset/convert_coco.py data/coco_stuff164k/ -o data/coco_stuff164k/
+```
 
 To evaluate the model on open-vocabulary segmentation benchmarks, use the `src/open_vocabulary_segmentation/main.py` script. Select the appropriate configuration based on the model, benchmark, and PAMR settings. Below is an example to evaluate the ViT-Base model on Cityscapes without PAMR:
 
