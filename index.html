@@ -2,8 +2,8 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="description" content="Is CLIP the main roadblock for fine-grained open-world perception?">
-  <meta name="keywords" content="CLIP, fine-grained understanding, open-world perception">
+  <meta name="description" content="Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation">
+  <meta name="keywords" content="open-vocabulary segmentation, DINO, CLIP, open-world perception">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation</title>
 
@@ -185,6 +185,16 @@
                   <span>Code</span>
                   </a>
               </span>
+              <!-- Models Link. -->
+              <span class="link-block">
+                <a href="https://github.com/lorebianchi98/Talk2DINO/tree/main/weights"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Models</span>
+                  </a>
+              </span>
               <!-- Dataset Link. -->
               <!-- <span class="link-block">
                 <a href="https://github.com/lorebianchi98/FG-OVD/tree/main/benchmarks"
@@ -236,6 +246,7 @@
     <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
         <!-- Teaser. -->
+        <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
             Open-Vocabulary Segmentation (OVS) aims at segmenting images from free-form textual concepts without predefined training classes. While existing vision-language models such as CLIP can generate segmentation masks by leveraging coarse spatial information from Vision Transformers, they face challenges in spatial localization due to their global alignment of image and text features. Conversely, self-supervised visual models like DINO excel in fine-grained visual encoding but lack integration with language. 
@@ -252,7 +263,31 @@
     <!--/ Abstract. -->
   </div>
 </section>
-<!-- Examples -->
+<!-- Predictions. -->
+<section class="section" id="results">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width has-text-centered">
+
+        <h2 class="title is-3">Examples</h2>
+        <figure>
+          <img src="./static/images/qualitatives.png" alt="Results examples" class="teaser-image"><br><br>
+          <caption>Qualitative results of Talk2DINO in comparison with FreeDA [3], ProxyCLIP [23], and CLIP-DINOiser [47].</caption>
+        </figure>
+        <br>
+        
+        <h2 class="title is-3">Results</h2>
+        <figure>
+          <img src="./static/images/ovs_results.png" alt="Results examples" class="teaser-image"><br><br>
+          <caption>Comparison with unsupervised OVS models on Pascal VOC [15], Pascal Context [30], COCO Stuff [7], Cityscapes [11], and
+            ADE20K [56, 57]. For each method, we specify the visual backbone used, along with whether it is frozen or fine-tuned.</caption>
+        </figure>
+        
+      </div>
+    </div>
+  </div>
+</section>
+
 
 <!-- Results -->
 <!-- <section class="section">
@@ -301,6 +336,10 @@
       <!-- </a> -->
       This work has received financial support by the European Union &mdash; Next Generation EU, Mission 4 Component 1
       CUP B53D23026090001 (a MUltimedia platform for Content Enrichment and Search in audiovisual archives &mdash; MUCES PRIN 2022 PNRR P2022BW7CW).
+    </p>
+    <p>
+      <a href="https://www.sun-xr-project.eu/" target="_blank"><img src="./static/images/sun.png" alt="SUN Project Logo" width="200"></a>
+      This work has received financial support by the Horizon Europe Research & Innovation Programme under Grant agreement N. 101092612 (Social and hUman ceNtered XR - SUN project).
     </p>
   </div>
 </section>
