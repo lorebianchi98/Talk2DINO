@@ -10,3 +10,4 @@ model:
   resize_dim: 518
   type: DINOText
   use_avg_text_token: false
+  with_bg_clean: true

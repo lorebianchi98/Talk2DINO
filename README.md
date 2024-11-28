@@ -1,4 +1,23 @@
 # Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation
+
+<div align="center">
+<figure>
+  <img alt="" src="./assets/overview.png">
+</figure>
+</div>
+
+Talk2DINO is an open-vocabulary segmentation architecture that combines the localized and semantically rich patch-level features of DINOv2 with the multimodal understanding capabilities of CLIP. This is achieved by learning a projection from the CLIP text encoder to the embedding space of DINOv2 using only image-caption pairs and exploiting the self-attention properties of DINOv2 to understand which part of the image has to be aligned to the corresponding caption.
+
+## Results
+
+| **Image** | **Ground Truth** | **FreeDA** | **ProxyCLIP** | **CLIP-DINOiser** | **Ours (Talk2DINO)** |
+|-----------|------------------|------------|---------------|-------------------|------------------|
+| ![Image](assets/qualitatives/voc/2_img.jpg) | ![Ground Truth](assets/qualitatives/voc/2_gt.png) | ![FreeDA](assets/qualitatives/voc/2_freeda.png) | ![ProxyCLIP](assets/qualitatives/voc/2_proxy.png) | ![CLIP-DINOiser](assets/qualitatives/voc/2_clipdinoiser.png) | ![Ours](assets/qualitatives/voc/2_talk2dino.png) |
+| ![Image](assets/qualitatives/object/2r_img.png) | ![Ground Truth](assets/qualitatives/object/2r_gt.png) | ![FreeDA](assets/qualitatives/object/2r_freeda.png) | ![ProxyCLIP](assets/qualitatives/object/2r_proxy.png) | ![CLIP-DINOiser](assets/qualitatives/object/2r_clipdinoiser.png) | ![Ours](assets/qualitatives/object/2r_talk2dino.png) |
+| ![Image](assets/qualitatives/cityscapes/1r_image.png) | ![Ground Truth](assets/qualitatives/cityscapes/1r_gt.png) | ![FreeDA](assets/qualitatives/cityscapes/1r_freeda.png) | ![ProxyCLIP](assets/qualitatives/cityscapes/1r_proxyclip.png) | ![CLIP-DINOiser](assets/qualitatives/cityscapes/1r_clipdinoiser.png) | ![Ours](assets/qualitatives/cityscapes/1r_talk2dino.png) |
+| ![Image](assets/qualitatives/context/1r_img.png) | ![Ground Truth](assets/qualitatives/context/1r_gt.png) | ![FreeDA](assets/qualitatives/context/1r_freeda.png) | ![ProxyCLIP](assets/qualitatives/context/1r_proxy.png) | ![CLIP-DINOiser](assets/qualitatives/context/1r_clipdinoiser.png) | ![Ours](assets/qualitatives/context/1r_talk2dino.png) |
+
+
 ## Installation
 ```bash
 conda create --name talk2dino python=3.9
@@ -87,14 +106,59 @@ COCO-Object dataset uses only object classes from COCO-Stuff164k dataset by coll
 python convert_dataset/convert_coco.py data/coco_stuff164k/ -o data/coco_stuff164k/
 ```
 
-To evaluate the model on open-vocabulary segmentation benchmarks, use the `src/open_vocabulary_segmentation/main.py` script. Select the appropriate configuration based on the model, benchmark, and PAMR settings. Below is an example to evaluate the ViT-Base model on Cityscapes without PAMR:
+To evaluate the model on open-vocabulary segmentation benchmarks, use the `src/open_vocabulary_segmentation/main.py` script. Select the appropriate configuration based on the model, benchmark, and PAMR settings. The available models are ``[vitb, vitl]``, while the available benchmarks are ``[ade, cityscapes, voc, voc_bg, context, context_bg, cityscapes, coco_object, stuff]``. Below we provide the list of evaluations to reproduce the results reported in the paper for the ViT-Base architecture:
 
 ```bash
-python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/cityscapes/dinotext_cityscapes_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/cityscapes/eval_cityscapes.yml
+# ADE20K
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/ade/dinotext_ade_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/ade/eval_ade_pamr.yml
+
+# Cityscapes
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/cityscapes/dinotext_cityscapes_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/cityscapes/eval_cityscapes_pamr.yml
+
+# Pascal VOC (without background)
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/voc/dinotext_voc_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/voc/eval_voc_pamr.yml
+
+# Pascal VOC (with background)
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/voc_bg/dinotext_voc_bg_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/voc_bg/eval_voc_bg_pamr.yml
+
+# Pascal Context (without background)
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/context/dinotext_context_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/context/eval_context_pamr.yml
+
+# Pascal Context (with background)
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/context_bg/dinotext_context_bg_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/context_bg/eval_context_bg_pamr.yml
+
+# COCOStuff
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/stuff/dinotext_stuff_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/stuff/eval_stuff_pamr.yml
+
+# COCO Object
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/coco_object/dinotext_coco_object_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/coco_object/eval_coco_object_pamr.yml
+
 ```
 
-ViT-Base model on Cityscapes with PAMR:
+Instead, the evaluations for the ViT-Large architecture are:
 
 ```bash
-python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/cityscapes/dinotext_cityscapes_vitb_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/cityscapes/eval_cityscapes_pamr.yml
+# ADE20K
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/ade/dinotext_ade_vitl_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/ade/eval_ade_pamr.yml
+
+# Cityscapes
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/cityscapes/dinotext_cityscapes_vitl_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/cityscapes/eval_cityscapes_pamr.yml
+
+# Pascal VOC (without background)
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/voc/dinotext_voc_vitl_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/voc/eval_voc_pamr.yml
+
+# Pascal VOC (with background)
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/voc_bg/dinotext_voc_bg_vitl_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/voc_bg/eval_voc_bg_vitl_pamr.yml
+
+# Pascal Context (without background)
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/context/dinotext_context_vitl_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/context/eval_context_pamr.yml
+
+# Pascal Context (with background)
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/context_bg/dinotext_context_bg_vitl_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/context_bg/eval_context_bg_vitl_pamr.yml
+
+# COCOStuff
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/stuff/dinotext_stuff_vitl_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/stuff/eval_stuff_pamr.yml
+
+# COCO Object
+python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/coco_object/dinotext_coco_object_vitl_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/coco_object/eval_coco_object_vitl_pamr.yml
 ```
