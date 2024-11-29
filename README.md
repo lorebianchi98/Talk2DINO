@@ -42,6 +42,7 @@ To speed up training, we use pre-extracted features. Follow these steps:
     python text_features_extraction.py --ann_path ../coco2014_b14/train.pth
     python text_features_extraction.py --ann_path ../coco2014_b14/val.pth
     ```
+
 ## Training
 
 To train the model, use the following command (this example runs training for the ViT-Base configuration):
@@ -162,3 +163,25 @@ python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval 
 # COCO Object
 python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval --eval_cfg src/open_vocabulary_segmentation/configs/coco_object/dinotext_coco_object_vitl_mlp_infonce.yml --eval_base src/open_vocabulary_segmentation/configs/coco_object/eval_coco_object_vitl_pamr.yml
 ```
+
+## Demo
+
+In ``demo.py`` we provide a simple example on how to use Talk2DINO for inference on a given image with custom textual categories. Run
+
+```bash
+python demo.py --input custom_input_image --output custom_output_seg [--with_background] --textual_categories category_1,category_2,..
+```
+
+Example:
+```bash
+python demo.py --input assets/pikachu.png --output pikachu_seg.png --textual_categories pikachu,traffic_sign,forest,road
+```
+
+Result:
+<div align="center">
+<table><tr><td><figure>
+  <img alt="" src="./assets/pikachu.png" width=300>
+</figure></td><td><figure>
+  <img alt="" src="./pikachu_seg.png" width=300>
+</figure></td></tr></table>
+</div>
