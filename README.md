@@ -1,4 +1,5 @@
 # Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation
+<span style="font-size: xx-large;">[Project page](https://lorebianchi98.github.io/Talk2DINO/) | [<img src="https://img.shields.io/badge/arXiv-2411.19331-b31b1b.svg" style="width: 180; margin-top: 15px;">](http://arxiv.org/abs/2411.19331)
 
 <div align="center">
 <figure>
@@ -185,3 +186,18 @@ Result:
   <img alt="" src="./pikachu_seg.png" width=300>
 </figure></td></tr></table>
 </div>
+
+
+## Reference
+If you found this code useful, please cite the following paper:
+```
+@misc{barsellotti2024talkingdinobridgingselfsupervised,
+      title={Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation}, 
+      author={Luca Barsellotti and Lorenzo Bianchi and Nicola Messina and Fabio Carrara and Marcella Cornia and Lorenzo Baraldi and Fabrizio Falchi and Rita Cucchiara},
+      year={2024},
+      eprint={2411.19331},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2411.19331}, 
+}
+```
