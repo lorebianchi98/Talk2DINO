@@ -31,6 +31,39 @@ mim install "mmcv-full==1.6.2"
 mim install "mmsegmentation==0.27.0"
 ```
 
+## Mapping CLIP Text Embeddings to DINOv2 space with Talk2DINO
+We can use Talk2DINO to map CLIP text embeddings into the DINOv2 patch embedding space.
+```python
+import clip
+from src.model import ProjectionLayer
+import torch
+import os
+
+# Device setup
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+# Configuration and weights
+proj_name = 'vitb_mlp_infonce'
+config_path = os.path.join("configs", f"{proj_name}.yaml")
+weights_path = os.path.join("weights", f"{proj_name}.pth")
+
+# Load Talk2DINO projection layer
+talk2dino = ProjectionLayer.from_config(config_path)
+talk2dino.load_state_dict(torch.load(weights_path, map_location=device))
+talk2dino.to(device)
+
+# Load CLIP model
+clip_model, clip_preprocess = clip.load("ViT-B/16", device=device, jit=False)
+tokenizer = clip.tokenize
+
+# Example: Tokenize and project text features
+texts = ["a cat"]
+text_tokens = tokenizer(texts).to(device)
+text_features = clip_model.encode_text(text_tokens)
+projected_text_features = talk2dino.project_clip_txt(text_features)
+```
+
+
 ## Feature Extraction
 To speed up training, we use pre-extracted features. Follow these steps:
 
