@@ -150,3 +150,17 @@ body {
   float: left;
   margin-right: 15px;
 }
+
+#results {
+  figure {
+    margin-bottom: 50px;
+    text-align: justify;
+    color: #555;
+    font-size: 0.9rem;
+  }
+
+  caption {
+    text-align: justify;
+    margin-bottom: 10px;
+  }
+}
