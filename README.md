@@ -8,6 +8,8 @@
 </div>
 
 Talk2DINO is an open-vocabulary segmentation architecture that combines the localized and semantically rich patch-level features of DINOv2 with the multimodal understanding capabilities of CLIP. This is achieved by learning a projection from the CLIP text encoder to the embedding space of DINOv2 using only image-caption pairs and exploiting the self-attention properties of DINOv2 to understand which part of the image has to be aligned to the corresponding caption.
+## Updates
+- :fire: 06/2025: **"Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation"** has been accepted to ICCV2025 in Honolulu! 🌺🌴🏖️
 
 ## Results
 
