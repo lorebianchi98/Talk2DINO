@@ -17,6 +17,7 @@ from PIL import Image
 from tqdm import tqdm
 from transformers import Blip2Processor, Blip2ForConditionalGeneration, AddedToken
 
+import sys
 # Initialize global variables
 # feats = {}
 # num_global_tokens = 1
@@ -52,14 +53,14 @@ def run_dinov2_extraction(model_name, data_dir, ann_path, batch_size, resize_dim
     num_tokens = num_global_tokens + num_patch_tokens
     if 'vitl' in model_name or 'vit_large' in model_name or 'ViT-L' in model_name:
         embed_dim = 1024
-    elif 'vitb' in model_name or 'vit_base' in model_name or 'ViT-B' in model_name:
+    elif 'vitb' in model_name or '_base' in model_name or 'ViT-B' in model_name:
         embed_dim = 768
     elif 'vits' in model_name or 'vit_small' in model_name:
         embed_dim = 384
     else:
         raise Exception("Unknown ViT model")
     
-    num_attn_heads = 16 if not 'vits' in model_name else 6
+    
     scale = 0.125
     batch_size_ = batch_size
     
@@ -73,7 +74,9 @@ def run_dinov2_extraction(model_name, data_dir, ann_path, batch_size, resize_dim
             T.ToTensor(),
             T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
         ])
-    elif 'mae' in model_name or 'sam' in model_name or 'clip' in model_name or 'dino' in model_name:
+        num_attn_heads = model.num_heads
+        
+    elif 'mae' in model_name or 'sam' in model_name or 'clip' in model_name or 'dino' in model_name or 'beit':
         model = timm.create_model(
             model_name,
             pretrained=True,
@@ -85,7 +88,7 @@ def run_dinov2_extraction(model_name, data_dir, ann_path, batch_size, resize_dim
         image_transforms = timm.data.create_transform(**data_config, is_training=False)
         
         # adjusting the dimensions
-        if 'mae' in model_name or 'dino' in model_name:
+        if 'mae' in model_name or 'dino' in model_name or 'beit':
             num_patch_tokens = crop_dim // 16 * crop_dim // 16
             num_tokens = 1 + num_patch_tokens
         elif 'sam' in model_name:
@@ -97,15 +100,19 @@ def run_dinov2_extraction(model_name, data_dir, ann_path, batch_size, resize_dim
             crop_dim = resize_dim = 224
             num_patch_tokens = crop_dim // 16 * crop_dim // 16 if 'vit_base' in model_name else crop_dim // 14 * crop_dim // 14
             num_tokens = 1 + num_patch_tokens  
+        num_attn_heads = model.blocks[-1].attn.num_heads
     elif 'ViT' in model_name:
         # CLIP extraction using clip library
         # use it only for CLS token
         model, image_transforms = clip.load(model_name, device)
+        num_attn_heads = model.num_heads
     else:
         raise Exception("Unknown ViT model")
-        
+    
+     
     model.eval()
     model.to(device)
+    
     
     if blip_model_name is not None:
         blip_processor = Blip2Processor.from_pretrained(blip_model_name)
@@ -122,19 +129,20 @@ def run_dinov2_extraction(model_name, data_dir, ann_path, batch_size, resize_dim
         data = read_coco_format_wds(ann_path)
     else:
         # otherwise we treat the dataset as a COCO dataset
-        if ann_path.endswith('.json'):
-            print("Loading the annotations JSON")
-            with open(ann_path, 'r') as f:
-                data = json.load(f)
-        else:
-            print("Loading the annotations PTH")
-            data = torch.load(ann_path)
+        # if ann_path.endswith('.json'):
+        #     print("Loading the annotations JSON")
+        #     with open(ann_path, 'r') as f:
+        #         data = json.load(f)
+        # else:
+        print("Loading the annotations PTH")
+        data = torch.load(ann_path)
         
     if extract_second_last_out:
         model.blocks[-2].register_forward_hook(get_second_last_out)
     if extract_avg_self_attn or extract_self_attn_maps or extract_disentangled_self_attn:
         model.blocks[-1].attn.qkv.register_forward_hook(get_self_attention)
-        
+        if 'beit' in model_name:
+            model.blocks[-1].attn.qkv_bias_separate = True
     print("Starting the features extraction...")
     n_imgs = len(data['images'])
     n_batch = math.ceil(n_imgs / batch_size)
@@ -189,7 +197,7 @@ def run_dinov2_extraction(model_name, data_dir, ann_path, batch_size, resize_dim
         with torch.no_grad():
             if 'dinov2' in model_name:
                 outs = model(batch_imgs, is_training=True)
-            elif 'mae' in model_name or 'clip' in model_name or 'dino' in model_name:
+            elif 'mae' in model_name or 'clip' in model_name or 'dino' in model_name or 'beit' in model_name:
                 output = model.forward_features(batch_imgs)
                 # reporting output in DINOv2 format
                 outs = {

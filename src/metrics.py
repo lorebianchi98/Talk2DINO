@@ -5,7 +5,7 @@ import torch
 import json
 import os
 
-from src.model import ProjectionLayer
+from src.model import ProjectionLayer, CLIPLastLayer
 
 
 def i2t(images, captions, npts=None, return_ranks=False, model=None):
@@ -141,6 +141,8 @@ def get_image_and_text_tensor(path, feature_name='dino_features', text_features=
             mask[mask.sum() - 1] = False # excluding end of sequence
             mask[0] = False # excluding CLS token
             return ann['clip_txt_out_tokens'][mask].mean(dim=0)
+        elif text_features_name == 'clip_second_last_out':
+            return ann['clip_second_last_out'], ann['text_argmax']
         else:
             return ann[text_features_name]
     
@@ -151,23 +153,35 @@ def get_image_and_text_tensor(path, feature_name='dino_features', text_features=
     imm_feats, ann_feats = None, None
     imm_file_names = []
     ann_texts = []
+    argmaxs = None
     for imm_id in tqdm(annotations.keys()):
         depth =  1 if len(images[imm_id].shape) == 1 else images[imm_id].shape[0]
         imm_feat = images[imm_id].expand(len(annotations[imm_id]), depth, -1)
-        imm_file_names += [imm_paths[imm_id]] * 5
-        ann_texts += capts[imm_id]
         
         if depth == 1:
             imm_feat = imm_feat.squeeze(dim=1)
         if ann_feats is None:
-            ann_feats = torch.stack(annotations[imm_id])
+            if type(annotations[imm_id][0]) != tuple:
+                ann_feats = torch.stack(annotations[imm_id])
+            else:
+                ann_feats = torch.stack([ann_feat_tuple[0] for ann_feat_tuple in annotations[imm_id]])
+                argmaxs = torch.stack([ann_feat_tuple[1] for ann_feat_tuple in annotations[imm_id]])
             imm_feats = imm_feat
         else:
-            ann_feats = torch.cat((ann_feats, torch.stack(annotations[imm_id])))
+            if type(annotations[imm_id][0]) != tuple:
+                ann_feats = torch.cat((ann_feats, torch.stack(annotations[imm_id])))
+            else:
+                ann_feats = torch.cat((ann_feats, torch.stack([ann_feat_tuple[0] for ann_feat_tuple in annotations[imm_id]])))
+                argmaxs = torch.cat((argmaxs, torch.stack([ann_feat_tuple[1] for ann_feat_tuple in annotations[imm_id]])))
+                
             imm_feats = torch.cat((imm_feats, imm_feat))
     
     if not return_capts_and_imms: 
-        return imm_feats, ann_feats
+        if argmaxs is None:
+            return imm_feats, ann_feats
+        else:
+            return imm_feats, ann_feats, argmaxs
+            
     else:
         return imm_feats, ann_feats, imm_file_names, ann_texts
     
@@ -190,10 +204,13 @@ def main():
     
     images, texts = get_image_and_text_tensor(args.test_data, args.img_features, text_features=args.text_features)
     
-    print(f"Images {len(images)} -------- Texts {len(texts)}")
+    # print(f"Images {len(images)} -------- Texts {len(texts)}")
     print("Model results (t2i, i2t):")
     if not args.custom_alignment and args.weights is not None:
-        proj = ProjectionLayer.from_config(args.config)
+        if 'clip_second_last_out' == args.text_features:
+            proj = CLIPLastLayer.from_config(args.config)
+        else:
+            proj = ProjectionLayer.from_config(args.config)
         proj.load_state_dict(torch.load(args.weights, 'cpu'))
         proj.to(device)
         texts = proj.project_clip_txt(texts.to(device).float()).detach().cpu()

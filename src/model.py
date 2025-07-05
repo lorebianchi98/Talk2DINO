@@ -571,7 +571,7 @@ class DoubleMLP(nn.Module):
 
     
 class CLIPLastLayer(nn.Module):
-    def __init__(self,  act=nn.Tanh(), hidden_layer=False, cosine=True, dino_embed_dim=1024, clip_embed_dim=512, weight_attn_heads=None, alignment_strategy='max_score', clip_model='ViT-B/16', text_input_mask=None):
+    def __init__(self,  act=nn.Tanh(), hidden_layer=False, cosine=True, dino_embed_dim=1024, clip_embed_dim=512, weight_attn_heads=None, alignment_strategy='max_score', clip_model='ViT-B/16', text_input_mask=None, projection_weights=None):
         import clip
         super().__init__()
         self.clip_model, _ = clip.load(clip_model)
@@ -590,6 +590,9 @@ class CLIPLastLayer(nn.Module):
                 
         self.projection_layer = ProjectionLayer(act=act, hidden_layer=hidden_layer, cosine=cosine, dino_embed_dim=dino_embed_dim,
                                                 clip_embed_dim=clip_embed_dim, weight_attn_heads=weight_attn_heads, alignment_strategy=alignment_strategy)
+        
+        if projection_weights is not None:
+            self.projection_layer.load_state_dict(torch.load(projection_weights, 'cpu'))
         
     def forward(self, visual_embedding, textual_embedding, ret_similarity_matrix=True, ret_embeds=False, self_attn_maps=None, cls=None, text_argmax=None, text_input_mask=None):
         x = self.last_resblock(textual_embedding.permute(1, 0, 2))
@@ -636,7 +639,9 @@ class CLIPLastLayer(nn.Module):
             clip_embed_dim=config.get('clip_embed_dim', 512),
             weight_attn_heads=config.get('weight_attn_heads', None),
             alignment_strategy=config.get('alignment_strategy', 'max_score'),
-            clip_model=config.get('clip_model', 'ViT-B/16')
+            clip_model=config.get('clip_model', 'ViT-B/16'),
+            projection_weights=config.get('projection_weights', None),
+            
         )
         if config.get('starting_checkpoint', None) is not None:
             model.load_state_dict(torch.load(config['starting_checkpoint'], 'cpu'))
