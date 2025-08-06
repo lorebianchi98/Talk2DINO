@@ -262,13 +262,13 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            Open-Vocabulary Segmentation (OVS) aims at segmenting images from free-form textual concepts without predefined training classes. While existing vision-language models such as CLIP can generate segmentation masks by leveraging coarse spatial information from Vision Transformers, they face challenges in spatial localization due to their global alignment of image and text features. Conversely, self-supervised visual models like DINO excel in fine-grained visual encoding but lack integration with language. 
+            Open-Vocabulary Segmentation (OVS) aims at segmenting images from free-form textual concepts without predefined training classes. While existing vision-language models such as CLIP can generate segmentation masks by leveraging coarse spatial information from Vision Transformers, they face challenges in spatial localization due to their global alignment of image and text features. Conversely, self-supervised visual models like DINO excel in fine-grained visual encoding but lack integration with language.
           </p>
           <p>
-            To bridge this gap, we present Talk2DINO, a novel hybrid approach that combines the spatial accuracy of DINOv2 with the language understanding of CLIP. Our approach aligns the textual embeddings of CLIP to the patch-level features of DINOv2 through a learned mapping function without the need to fine-tune the underlying backbones. At training time, we exploit the attention maps of DINOv2 to selectively align local visual patches with textual embeddings. 
+            To bridge this gap, we present Talk2DINO, a novel hybrid approach that combines the spatial accuracy of DINOv2 with the language understanding of CLIP. Our approach aligns the textual embeddings of CLIP to the patch-level features of DINOv2 through a learned mapping function without the need to fine-tune the underlying backbones. At training time, we exploit the attention maps of DINOv2 to selectively align local visual patches with textual embeddings.
           </p>
           <p>
-            We show that the powerful semantic and localization abilities of Talk2DINO can enhance the segmentation process, resulting in more natural and less noisy segmentations, and that our approach can also effectively distinguish foreground objects from the background. Experimental results demonstrate that Talk2DINO achieves state-of-the-art performance across several unsupervised OVS benchmarks.</p>
+             We show that the powerful semantic and localization abilities of Talk2DINO can enhance the segmentation process, resulting in more natural and less noisy segmentations, and that our approach can also effectively distinguish foreground objects from the background. Experimental results demonstrate that Talk2DINO achieves state-of-the-art performance across several unsupervised OVS benchmarks..</p>
           </p>
         </div>
       </div>
@@ -285,15 +285,14 @@
         <h2 class="title is-3">Examples</h2>
         <figure>
           <img src="./static/images/qualitatives.png" alt="Results examples" class="teaser-image"><br><br>
-          <caption>Qualitative results of Talk2DINO in comparison with FreeDA [3], ProxyCLIP [23], and CLIP-DINOiser [47].</caption>
+          <caption>Qualitative results of Talk2DINO in comparison with FreeDA, ProxyCLIP, and CLIP-DINOiser.</caption>
         </figure>
         <br>
         
         <h2 class="title is-3">Results</h2>
         <figure>
           <img src="./static/images/ovs_results.png" alt="Results examples" class="teaser-image"><br><br>
-          <caption>Comparison with unsupervised OVS models on Pascal VOC [15], Pascal Context [30], COCO Stuff [7], Cityscapes [11], and
-            ADE20K [56, 57]. For each method, we specify the visual backbone used, along with whether it is frozen or fine-tuned.</caption>
+          <caption>Comparison with unsupervised OVS models on Pascal VOC, Pascal Context, COCO Stuff, COCO Object, Cityscapes, and ADE20K. For each method, we specify the visual backbone used, along with whether it is frozen or fine-tuned. We report both the variants with and without background for Pascal VOC (V21 and V20) and Pascal Context (C60 and C59). Best results with and without mask refinement are highlighted in bold, overall best results are underlined.</caption>
         </figure>
         
       </div>
