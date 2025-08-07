@@ -23,14 +23,32 @@ Talk2DINO is an open-vocabulary segmentation architecture that combines the loca
 
 ## Installation
 ```bash
-conda create --name talk2dino python=3.9
+# Create a new environment with Python 3.10
+conda create --name talk2dino python=3.10 -c conda-forge
 conda activate talk2dino
-pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
+
+# Install compilers for C++/CUDA extensions
+conda install -c conda-forge "gxx_linux-64=11.*" "gcc_linux-64=11.*"
+
+# Install CUDA toolkit and cuDNN
+conda install -c nvidia/label/cuda-11.7.0 cuda 
+conda install -c nvidia/label/cuda-11.7.0 cuda-nvcc
+conda install -c conda-forge cudnn cudatoolkit=11.7.0
+
+# Install PyTorch 2.1 with CUDA 11.8 support
+# Note: This is crucial, as it matches the requirements of mmcv-full 1.7.2
+pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+
+# Install other dependencies
 pip install -r requirements.txt
 pip install -U openmim
 mim install mmengine
-mim install "mmcv-full==1.6.2"
-mim install "mmsegmentation==0.27.0"
+
+# Install a compatible version of mmcv-full (1.7.2) for PyTorch 2.1
+pip install mmcv-full==1.7.2 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.1.0/index.html
+
+# Install mmsegmentation
+pip install mmsegmentation==0.30.0
 ```
 
 ## Mapping CLIP Text Embeddings to DINOv2 space with Talk2DINO
@@ -222,6 +240,8 @@ Result:
 </figure></td></tr></table>
 </div>
 
+## Acknowledgments
+Thanks to [AyoubDamak](https://github.com/AyoubDamak) for contributing to the updated installation instructions.
 
 ## Reference
 If you found this code useful, please cite the following paper:
