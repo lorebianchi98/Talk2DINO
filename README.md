@@ -15,10 +15,10 @@ Talk2DINO is an open-vocabulary segmentation architecture that combines the loca
 
 | **Image** | **Ground Truth** | **FreeDA** | **ProxyCLIP** | **CLIP-DINOiser** | **Ours (Talk2DINO)** |
 |-----------|------------------|------------|---------------|-------------------|------------------|
-| ![Image](assets/qualitatives/voc/2_img.jpg) | ![Ground Truth](assets/qualitatives/voc/2_gt.png) | ![FreeDA](assets/qualitatives/voc/2_freeda.png) | ![ProxyCLIP](assets/qualitatives/voc/2_proxy.png) | ![CLIP-DINOiser](assets/qualitatives/voc/2_clipdinoiser.png) | ![Ours](assets/qualitatives/voc/2_talk2dino.png) |
-| ![Image](assets/qualitatives/object/2r_img.png) | ![Ground Truth](assets/qualitatives/object/2r_gt.png) | ![FreeDA](assets/qualitatives/object/2r_freeda.png) | ![ProxyCLIP](assets/qualitatives/object/2r_proxy.png) | ![CLIP-DINOiser](assets/qualitatives/object/2r_clipdinoiser.png) | ![Ours](assets/qualitatives/object/2r_talk2dino.png) |
-| ![Image](assets/qualitatives/cityscapes/1r_image.png) | ![Ground Truth](assets/qualitatives/cityscapes/1r_gt.png) | ![FreeDA](assets/qualitatives/cityscapes/1r_freeda.png) | ![ProxyCLIP](assets/qualitatives/cityscapes/1r_proxyclip.png) | ![CLIP-DINOiser](assets/qualitatives/cityscapes/1r_clipdinoiser.png) | ![Ours](assets/qualitatives/cityscapes/1r_talk2dino.png) |
-| ![Image](assets/qualitatives/context/1r_img.png) | ![Ground Truth](assets/qualitatives/context/1r_gt.png) | ![FreeDA](assets/qualitatives/context/1r_freeda.png) | ![ProxyCLIP](assets/qualitatives/context/1r_proxy.png) | ![CLIP-DINOiser](assets/qualitatives/context/1r_clipdinoiser.png) | ![Ours](assets/qualitatives/context/1r_talk2dino.png) |
+| ![Image](assets/qualitatives/voc/1_img.png) | ![Ground Truth](assets/qualitatives/voc/1_gt.png) | ![FreeDA](assets/qualitatives/voc/1_freeda.png) | ![ProxyCLIP](assets/qualitatives/voc/1_proxy.png) | ![CLIP-DINOiser](assets/qualitatives/voc/1_clipdinoiser.png) | ![Ours](assets/qualitatives/voc/1_talk2dino.png) |
+| ![Image](assets/qualitatives/voc/2_img.png) | ![Ground Truth](assets/qualitatives/voc/2_gt.png) | ![FreeDA](assets/qualitatives/voc/2_freeda.png) | ![ProxyCLIP](assets/qualitatives/voc/2_proxy.png) | ![CLIP-DINOiser](assets/qualitatives/voc/2_clipdinoiser.png) | ![Ours](assets/qualitatives/voc/2_talk2dino.png) |
+| ![Image](assets/qualitatives/stuff/1r_image.png) | ![Ground Truth](assets/qualitatives/stuff/1r_gt.png) | ![FreeDA](assets/qualitatives/stuff/1r_freeda.png) | ![ProxyCLIP](assets/qualitatives/stuff/1r_proxyclip.png) | ![CLIP-DINOiser](assets/qualitatives/stuff/1r_clipdinoiser.png) | ![Ours](assets/qualitatives/stuff/1r_talk2dino.png) |
+| ![Image](assets/qualitatives/context/3r_image.png) | ![Ground Truth](assets/qualitatives/context/3r_gt.png) | ![FreeDA](assets/qualitatives/context/3r_freeda.png) | ![ProxyCLIP](assets/qualitatives/context/3r_proxyclip.png) | ![CLIP-DINOiser](assets/qualitatives/context/3r_clipdinoiser.png) | ![Ours](assets/qualitatives/context/3r_talk2dino.png) |
 
 
 ## Installation
@@ -228,7 +228,7 @@ python demo.py --input custom_input_image --output custom_output_seg [--with_bac
 
 Example:
 ```bash
-python demo.py --input assets/pikachu.png --output pikachu_seg.png --textual_categories pikachu,traffic_sign,forest,road
+python demo.py --input assets/pikachu.png --output pikachu_seg.png --textual_categories pikachu,traffic_sign,forest,route
 ```
 
 Result:

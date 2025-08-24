@@ -124,7 +124,7 @@ class DINOText(nn.Module):
             self.num_global_tokens = 5 if 'reg' in model_name else 1
             if 'sam' in self.model_name:
                 self.num_global_tokens = 0
-            self.num_attn_heads = 16
+            self.num_attn_heads = self.model.num_heads
             self.scale = 0.125
         
         self.use_avg_text_token = use_avg_text_token
@@ -366,7 +366,7 @@ class DINOText(nn.Module):
         bs, num_heads, hw = self_attn_maps.shape
         image_feat = image_feat.reshape(bs, c, hw)
         num_classes, c = text_emb.shape
-        avg_head_embed = (self_attn_maps.unsqueeze(2).softmax(dim=-1) * image_feat.unsqueeze(1)).sum(dim=-1) # [B, C, M]
+        avg_head_embed = (self_attn_maps.unsqueeze(2) * image_feat.unsqueeze(1)).mean(dim=-1)
         avg_head_embed = avg_head_embed / avg_head_embed.norm(dim=-1, keepdim=True)
         avg_head_embed = avg_head_embed.permute(0, 2, 1) # [B, C, M]
         head_text_sim = text_emb.unsqueeze(0) @ avg_head_embed # [B, M, N]

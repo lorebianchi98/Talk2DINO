@@ -7,6 +7,6 @@ model:
   proj_class: vitl_mlp_infonce
   proj_model: ProjectionLayer
   proj_name: vitl_mlp_infonce
-  resize_dim: 518
+  resize_dim: 448
   type: DINOText
   use_avg_text_token: false

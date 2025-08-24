@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# FreeDA
+# Talk2DINO
 # ------------------------------------------------------------------------------
 # Modified from GroupViT (https://github.com/NVlabs/GroupViT)
 # Copyright (c) 2021-22, NVIDIA Corporation & affiliates. All Rights Reserved.

@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# FreeDA
+# Talk2DINO
 # ------------------------------------------------------------------------------
 import copy
 from collections import OrderedDict
@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from einops import rearrange, repeat
 
 from models.builder import MODELS
-from models.dinotext.gumbel import gumbel_sigmoid
+# from models.dinotext.gumbel import gumbel_sigmoid
 from models.dinotext.modules import FeatureEncoder
 
 from utils import get_logger

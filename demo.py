@@ -43,7 +43,7 @@ model = build_model(cfg.model)
 model.to(device).eval()
 
 img = read_image(input_file).to(device).float().unsqueeze(0)
-# text = ["pikachu", "traffic sign", "forest", "road"]
+# text = ["pikachu", "traffic sign", "forest", "route"]
 palette = [
     [255, 0, 0],
     [255, 255, 0],
