@@ -55,7 +55,13 @@ class DINOText(nn.Module):
         if 'dinov2' in model_name:
             self.model_family = 'facebookresearch/dinov2' if 'dinov2' in model_name else 'facebookresearch/dino:main'
             self.model = torch.hub.load(self.model_family, model_name)
-            
+        elif 'dinov3' in model_name:
+            def extract_dinov3_name(path, n_parts=2):
+                filename = os.path.basename(path)
+                parts = filename.split("_")
+                return "_".join(parts[:n_parts])
+            self.model = torch.hub.load('src/dinov3', extract_dinov3_name(model_name), source='local', weights=model_name)
+                
             
         elif 'mae' in model_name or 'sam' in model_name or 'clip' in model_name or 'dino' in model_name:
             self.model = timm.create_model(
@@ -73,9 +79,9 @@ class DINOText(nn.Module):
         mean = (0.485, 0.456, 0.406) if not 'clip' in model_name else (0.4815, 0.4578, 0.4082)
         std = (0.229, 0.224, 0.225) if not 'clip' in model_name else (0.2686, 0.2613, 0.2758)
         self.image_transforms = T.Compose([
-                T.Resize((resize_dim, resize_dim)),
-                lambda x: x / 255.0,
-                T.Normalize(mean, std),
+            T.Resize((resize_dim, resize_dim)),
+            lambda x: T.ToTensor()(x) if not isinstance(x, torch.Tensor) else x / 255.0,  # ensure tensor
+            T.Normalize(mean, std),
         ])
         
         self.model.to(device)
@@ -121,7 +127,7 @@ class DINOText(nn.Module):
         
         if self.avg_self_attn_token or self.disentangled_self_attn_token or is_eval:
             self.model.blocks[-1].attn.qkv.register_forward_hook(self.get_self_attention)
-            self.num_global_tokens = 5 if 'reg' in model_name else 1
+            self.num_global_tokens = 5 if 'reg' in model_name or 'dinov3' in model_name else 1
             if 'sam' in self.model_name:
                 self.num_global_tokens = 0
             self.num_attn_heads = self.model.num_heads
@@ -230,7 +236,7 @@ class DINOText(nn.Module):
         Returns:
             text_embs
         """
-        text = text.to(device)
+        text = text.to(next(self.parameters()).device)
         num_classes, num_templates = text.shape[:2]
         text_argmax = text.argmax(dim=-1)
         text_argmax = rearrange(text_argmax, 'n t -> (n t)', n=num_classes, t=num_templates)
@@ -325,8 +331,8 @@ class DINOText(nn.Module):
         image = image[:, [2, 1, 0], :, :]  # BGR to RGB
         ori_image = image.clone()
         
-        img_preprocessed = self.image_transforms(image).to(device)
-        if 'dinov2' in self.model_name:
+        img_preprocessed = self.image_transforms(image).to(next(self.parameters()).device)
+        if 'dinov2' in self.model_name or 'dinov3' in self.model_name:
             image_feat = self.model.forward_features(img_preprocessed)['x_norm_patchtokens']
         elif 'mae' in self.model_name or 'clip' in self.model_name or 'dino' in self.model_name:
             image_feat = self.model.forward_features(img_preprocessed)[:, 1:, :]

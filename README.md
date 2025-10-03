@@ -1,5 +1,7 @@
 # Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation
-<span style="font-size: xx-large;">[Project page](https://lorebianchi98.github.io/Talk2DINO/) | [<img src="https://img.shields.io/badge/arXiv-2411.19331-b31b1b.svg" style="width: 180; margin-top: 15px;">](http://arxiv.org/abs/2411.19331)
+<span style="font-size: xx-large;">[Project page](https://lorebianchi98.github.io/Talk2DINO/) | 
+[<img src="https://img.shields.io/badge/arXiv-2411.19331-b31b1b.svg" style="width: 180; margin-top: 15px;">](http://arxiv.org/abs/2411.19331) |
+[<img src="https://img.shields.io/badge/HuggingFace-Paper-yellow.svg" style="width: 200; margin-top: 15px;">](https://huggingface.co/papers/2411.19331)
 
 <div align="center">
 <figure>
@@ -9,6 +11,9 @@
 
 Talk2DINO is an open-vocabulary segmentation architecture that combines the localized and semantically rich patch-level features of DINOv2 with the multimodal understanding capabilities of CLIP. This is achieved by learning a projection from the CLIP text encoder to the embedding space of DINOv2 using only image-caption pairs and exploiting the self-attention properties of DINOv2 to understand which part of the image has to be aligned to the corresponding caption.
 ## Updates
+- :hugs: 09/2025: **Talk2DINO ViT-B** and **Talk2DINO ViT-L** are now available on the [Hugging Face Hub](https://huggingface.co/lorebianchi98) 🎉  
+  - [Talk2DINO-ViT-B](https://huggingface.co/lorebianchi98/Talk2DINO-ViTB)  
+  - [Talk2DINO-ViT-L](https://huggingface.co/lorebianchi98/Talk2DINO-ViTL)
 - :fire: 06/2025: **"Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation"** has been accepted to ICCV2025 in Honolulu! 🌺🌴🏖️
 
 ## Results
@@ -52,28 +57,44 @@ pip install mmsegmentation==0.30.0
 ```
 
 ## Mapping CLIP Text Embeddings to DINOv2 space with Talk2DINO
-We can use Talk2DINO to map CLIP text embeddings into the DINOv2 patch embedding space.
+Talk2DINO enables you to align **CLIP text embeddings** with the **patch-level embedding space of DINOv2**.  
+You can try it in two ways:
+
+### 🔹 Using the Hugging Face Hub
+Easily load pretrained models with the HF interface:
+```python
+from src.hf_model import Talk2DINO
+import torch
+
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+model = Talk2DINO.from_pretrained("lorebianchi98/Talk2DINO-ViTB").to(device).eval()
+
+with torch.no_grad():
+    text_embed = model.encode_text("a pikachu")
+```
+
+### 🔹 Using the Original Talk2DINO Interface
+
+If you prefer local configs and weights:
+
 ```python
 import clip
 from src.model import ProjectionLayer
-import torch
-import os
+import torch, os
 
-# Device setup
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Configuration and weights
+# Load Talk2DINO projection layer
 proj_name = 'vitb_mlp_infonce'
 config_path = os.path.join("configs", f"{proj_name}.yaml")
 weights_path = os.path.join("weights", f"{proj_name}.pth")
 
-# Load Talk2DINO projection layer
 talk2dino = ProjectionLayer.from_config(config_path)
 talk2dino.load_state_dict(torch.load(weights_path, map_location=device))
 talk2dino.to(device)
 
 # Load CLIP model
-clip_model, clip_preprocess = clip.load("ViT-B/16", device=device, jit=False)
+clip_model, _ = clip.load("ViT-B/16", device=device, jit=False)
 tokenizer = clip.tokenize
 
 # Example: Tokenize and project text features
@@ -82,7 +103,6 @@ text_tokens = tokenizer(texts).to(device)
 text_features = clip_model.encode_text(text_tokens)
 projected_text_features = talk2dino.project_clip_txt(text_features)
 ```
-
 
 ## Feature Extraction
 To speed up training, we use pre-extracted features. Follow these steps:
@@ -219,8 +239,10 @@ python -m torch.distributed.run src/open_vocabulary_segmentation/main.py --eval 
 ```
 
 ## Demo
+We provide two simple entry points for trying out Talk2DINO:
 
-In ``demo.py`` we provide a simple example on how to use Talk2DINO for inference on a given image with custom textual categories. Run
+- **`hf_demo.ipynb`** – an interactive notebook showing how to generate segmentation masks directly using the Hugging Face interface.  
+- **`demo.py`** – a lightweight script for running inference on a custom image with your own textual categories.  . Run
 
 ```bash
 python demo.py --input custom_input_image --output custom_output_seg [--with_background] --textual_categories category_1,category_2,..
