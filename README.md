@@ -26,13 +26,42 @@ Talk2DINO is an open-vocabulary segmentation architecture that combines the loca
 | ![Image](assets/qualitatives/context/3r_image.png) | ![Ground Truth](assets/qualitatives/context/3r_gt.png) | ![FreeDA](assets/qualitatives/context/3r_freeda.png) | ![ProxyCLIP](assets/qualitatives/context/3r_proxyclip.png) | ![CLIP-DINOiser](assets/qualitatives/context/3r_clipdinoiser.png) | ![Ours](assets/qualitatives/context/3r_talk2dino.png) |
 
 
+Here’s a refined and concise version of your installation guidelines that separates **Hugging Face inference** from **full MMCV-based evaluation**, while keeping them clear and easy to follow:
+
+---
+
 ## Installation
+
+### 1️⃣ Hugging Face Interface (for inference)
+
+To quickly run Talk2DINO on your own images:
+
 ```bash
-# Create a new environment with Python 3.10
+# Clone the repository
+git clone https://github.com/lorebianchi98/Talk2DINO.git
+cd Talk2DINO
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install PyTorch (CUDA 12.6 example)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+```
+
+This setup allows you to load Hugging Face models (`Talk2DINO-ViTB` / `Talk2DINO-ViTL`) and generate segmentation masks without setting up MMCV or MMSegmentation.
+
+---
+
+### 2️⃣ MMCV Interface (for evaluation & full pipelines)
+
+If you want to perform **benchmark evaluation** using MMSegmentation:
+
+```bash
+# Create a dedicated environment
 conda create --name talk2dino python=3.10 -c conda-forge
 conda activate talk2dino
 
-# Install compilers for C++/CUDA extensions
+# Install C++/CUDA compilers
 conda install -c conda-forge "gxx_linux-64=11.*" "gcc_linux-64=11.*"
 
 # Install CUDA toolkit and cuDNN
@@ -40,21 +69,24 @@ conda install -c nvidia/label/cuda-11.7.0 cuda
 conda install -c nvidia/label/cuda-11.7.0 cuda-nvcc
 conda install -c conda-forge cudnn cudatoolkit=11.7.0
 
-# Install PyTorch 2.1 with CUDA 11.8 support
-# Note: This is crucial, as it matches the requirements of mmcv-full 1.7.2
+# Install PyTorch 2.1 + CUDA 11.8
 pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
 
-# Install other dependencies
+# Install remaining dependencies
 pip install -r requirements.txt
 pip install -U openmim
 mim install mmengine
 
-# Install a compatible version of mmcv-full (1.7.2) for PyTorch 2.1
+# Install MMCV (compatible with PyTorch 2.1 + CUDA 11.8)
 pip install mmcv-full==1.7.2 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.1.0/index.html
 
-# Install mmsegmentation
+# Install MMSegmentation
 pip install mmsegmentation==0.30.0
 ```
+
+---
+
+
 
 ## Mapping CLIP Text Embeddings to DINOv2 space with Talk2DINO
 Talk2DINO enables you to align **CLIP text embeddings** with the **patch-level embedding space of DINOv2**.  
@@ -63,7 +95,7 @@ You can try it in two ways:
 ### 🔹 Using the Hugging Face Hub
 Easily load pretrained models with the HF interface:
 ```python
-from src.hf_model import Talk2DINO
+from src.hf_model.talk2dino import Talk2DINO
 import torch
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
