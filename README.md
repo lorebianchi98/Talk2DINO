@@ -95,7 +95,7 @@ You can try it in two ways:
 ### 🔹 Using the Hugging Face Hub
 Easily load pretrained models with the HF interface:
 ```python
-from src.hf_model.talk2dino import Talk2DINO
+from transformers import AutoModel
 import torch
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
