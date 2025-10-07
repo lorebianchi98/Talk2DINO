@@ -99,7 +99,7 @@ from transformers import AutoModel
 import torch
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-model = Talk2DINO.from_pretrained("lorebianchi98/Talk2DINO-ViTB").to(device).eval()
+model = AutoModel.from_pretrained("lorebianchi98/Talk2DINO-ViTB").to(device).eval()
 
 with torch.no_grad():
     text_embed = model.encode_text("a pikachu")
