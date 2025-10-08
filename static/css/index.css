@@ -164,3 +164,9 @@ body {
     margin-bottom: 10px;
   }
 }
+
+.logo-image {
+    max-width: 300px;
+    margin-top: 0px;
+    margin-bottom: 20px;
+}
