@@ -1,7 +1,20 @@
 # Talking to DINO: Bridging Self-Supervised Vision Backbones with Language for Open-Vocabulary Segmentation
-<span style="font-size: xx-large;">[Project page](https://lorebianchi98.github.io/Talk2DINO/) | 
-[<img src="https://img.shields.io/badge/arXiv-2411.19331-b31b1b.svg" style="width: 180; margin-top: 15px;">](http://arxiv.org/abs/2411.19331) |
-[<img src="https://img.shields.io/badge/HuggingFace-Paper-yellow.svg" style="width: 200; margin-top: 15px;">](https://huggingface.co/papers/2411.19331)
+
+
+<p align="center">
+  <a href="https://arxiv.org/abs/2411.19331">
+    <img src="https://img.shields.io/badge/Paper-arXiv%3A2411.19331-b31b1b?style=flat-square&logo=arxiv&logoColor=white" alt="arXiv Paper"/>
+  </a>
+  <a href="https://lorebianchi98.github.io/Talk2DINO/">
+    <img src="https://img.shields.io/badge/Website-Live-brightgreen?style=flat-square&logo=google-chrome&logoColor=white" alt="Project Website"/>
+  </a>
+  <a href="https://huggingface.co/spaces/lorebianchi98/Talk2DINO">
+    <img src="https://img.shields.io/badge/Demo-HuggingFace-orange?style=flat-square&logo=gradio&logoColor=white" alt="Demo on Hugging Face"/>
+  </a>
+  <a href="https://huggingface.co/collections/lorebianchi98/talk2dino-68ea55d043df37d95adc2a88">
+    <img src="https://img.shields.io/badge/Models-HuggingFace-blue?style=flat-square&logo=huggingface&logoColor=white" alt="Hugging Face Models"/>
+  </a>
+</p>
 
 <div align="center">
 <figure>
