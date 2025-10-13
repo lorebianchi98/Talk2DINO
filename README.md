@@ -24,6 +24,7 @@
 
 Talk2DINO is an open-vocabulary segmentation architecture that combines the localized and semantically rich patch-level features of DINOv2 with the multimodal understanding capabilities of CLIP. This is achieved by learning a projection from the CLIP text encoder to the embedding space of DINOv2 using only image-caption pairs and exploiting the self-attention properties of DINOv2 to understand which part of the image has to be aligned to the corresponding caption.
 ## Updates
+- 🚀 10/2025: **Gradio demo is now live!** Try **Talk2DINO** interactively on the [Hugging Face Spaces](https://huggingface.co/spaces/lorebianchi98/Talk2DINO) 🦖
 - :hugs: 09/2025: **Talk2DINO ViT-B** and **Talk2DINO ViT-L** are now available on the [Hugging Face Hub](https://huggingface.co/lorebianchi98) 🎉  
   - [Talk2DINO-ViT-B](https://huggingface.co/lorebianchi98/Talk2DINO-ViTB)  
   - [Talk2DINO-ViT-L](https://huggingface.co/lorebianchi98/Talk2DINO-ViTL)
