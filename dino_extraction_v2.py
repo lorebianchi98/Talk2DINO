@@ -88,7 +88,13 @@ def run_dinov2_extraction(model_name, data_dir, ann_path, batch_size, resize_dim
         image_transforms = timm.data.create_transform(**data_config, is_training=False)
         
         # adjusting the dimensions
-        if 'mae' in model_name or 'dino' in model_name or 'beit':
+        if 'dinov3' in model_name:
+            data_config['input_size'] = (3, crop_dim, crop_dim)
+            image_transforms = timm.data.create_transform(**data_config, is_training=False)
+            num_patch_tokens = crop_dim // 16 * crop_dim // 16
+            num_global_tokens = 5
+            num_tokens = num_global_tokens + num_patch_tokens
+        elif 'mae' in model_name or 'dino' in model_name or 'beit':
             num_patch_tokens = crop_dim // 16 * crop_dim // 16
             num_tokens = 1 + num_patch_tokens
         elif 'sam' in model_name:
@@ -197,6 +203,13 @@ def run_dinov2_extraction(model_name, data_dir, ann_path, batch_size, resize_dim
         with torch.no_grad():
             if 'dinov2' in model_name:
                 outs = model(batch_imgs, is_training=True)
+            if 'dinov3' in model_name:
+                output = model.forward_features(batch_imgs)
+                # reporting output in DINOv2 format
+                outs = {
+                    'x_norm_clstoken': output[:, 0, :],
+                    'x_norm_patchtokens': output[:, 5:, :],
+                }
             elif 'mae' in model_name or 'clip' in model_name or 'dino' in model_name or 'beit' in model_name:
                 output = model.forward_features(batch_imgs)
                 # reporting output in DINOv2 format

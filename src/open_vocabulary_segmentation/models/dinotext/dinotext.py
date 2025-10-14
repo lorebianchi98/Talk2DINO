@@ -54,14 +54,7 @@ class DINOText(nn.Module):
         
         if 'dinov2' in model_name:
             self.model_family = 'facebookresearch/dinov2' if 'dinov2' in model_name else 'facebookresearch/dino:main'
-            self.model = torch.hub.load(self.model_family, model_name)
-        elif 'dinov3' in model_name:
-            def extract_dinov3_name(path, n_parts=2):
-                filename = os.path.basename(path)
-                parts = filename.split("_")
-                return "_".join(parts[:n_parts])
-            self.model = torch.hub.load('src/dinov3', extract_dinov3_name(model_name), source='local', weights=model_name)
-                
+            self.model = torch.hub.load(self.model_family, model_name)                
             
         elif 'mae' in model_name or 'sam' in model_name or 'clip' in model_name or 'dino' in model_name:
             self.model = timm.create_model(
@@ -130,7 +123,15 @@ class DINOText(nn.Module):
             self.num_global_tokens = 5 if 'reg' in model_name or 'dinov3' in model_name else 1
             if 'sam' in self.model_name:
                 self.num_global_tokens = 0
-            self.num_attn_heads = self.model.num_heads
+            if 'dinov3' in self.model_name:
+                if 'vit_base' in self.model_name:
+                    self.num_attn_heads = 12
+                elif 'vit_large' in self.model_name:
+                    self.num_attn_heads = 16
+                else:
+                    raise Exception("Unknown dinov3 model")
+            else:
+                self.num_attn_heads = self.model.num_heads
             self.scale = 0.125
         
         self.use_avg_text_token = use_avg_text_token
@@ -332,8 +333,10 @@ class DINOText(nn.Module):
         ori_image = image.clone()
         
         img_preprocessed = self.image_transforms(image).to(next(self.parameters()).device)
-        if 'dinov2' in self.model_name or 'dinov3' in self.model_name:
+        if 'dinov2' in self.model_name:
             image_feat = self.model.forward_features(img_preprocessed)['x_norm_patchtokens']
+        elif 'dinov3' in self.model_name:
+            image_feat = self.model.forward_features(img_preprocessed)[:, 5:, :]
         elif 'mae' in self.model_name or 'clip' in self.model_name or 'dino' in self.model_name:
             image_feat = self.model.forward_features(img_preprocessed)[:, 1:, :]
         elif 'sam' in self.model_name:

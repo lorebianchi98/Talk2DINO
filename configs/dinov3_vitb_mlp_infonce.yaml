@@ -1,0 +1,11 @@
+model:
+  act: tanh # None, tanh, relu or sigmoid
+  hidden_layer: True
+  dino_embed_dim: 768
+
+train:
+  lr: 0.0001
+  ltype: 'infonce'
+  num_epochs: 100
+  batch_size: 128
+  save_best_model: False

@@ -1,0 +1,12 @@
+_base_: default.yml
+model:
+  clip_model_name: ViT-B/16
+  keep_cls: false
+  keep_end_seq: false
+  model_name: vit_large_patch16_dinov3.lvd1689m
+  proj_class: dinov3_vitl_mlp_infonce
+  proj_model: ProjectionLayer
+  proj_name: dinov3_vitl_mlp_infonce
+  resize_dim: 448
+  type: DINOText
+  use_avg_text_token: false
