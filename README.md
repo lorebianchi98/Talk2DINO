@@ -312,6 +312,13 @@ Result:
 ## Acknowledgments
 Thanks to [AyoubDamak](https://github.com/AyoubDamak) for contributing to the updated installation instructions.
 
+## Related Projects
+- **[Talking to ViT-Up Notebook](https://github.com/krispinwandel/vit-up/blob/main/notebooks/talking_to_vit-up.ipynb)** – An integration combining Talk2DINO with [ViT-Up](https://github.com/krispinwandel/vit-up) (a feature upsampling model) to perform text-guided open-vocabulary segmentation on dense high-resolution features.
+
+<div align="center">
+  <img alt="Talking to ViT-Up Demo" src="assets/vit-up_demo.png" width="600">
+</div>
+
 ## Reference
 If you found this code useful, please cite the following paper:
 ```
